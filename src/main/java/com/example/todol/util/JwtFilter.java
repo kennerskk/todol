@@ -22,14 +22,16 @@ import java.util.stream.Collectors;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;// private เพื่อป้องกันไม่ให้คลาสอื่นเข้าถึงได้ final
+                                  // คือตัวแปรนี้จะถูกกำหนดค่าเพียงครั้งเดียว
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    public JwtFilter(JwtUtil jwtUtil) { // ระบุให้ bean นี้มี jwtUtil เป็นส่วนหนึ่งตอนสร้าง
         this.jwtUtil = jwtUtil;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
+    protected void doFilterInternal(HttpServletRequest request, // อันนี้เป็นการเขียนทับ method เดิมของ
+                                                                // OncePerRequestFilter
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
@@ -59,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(tokenData.getEmail(),
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(tokenData,
                         null, auths);
 
                 SecurityContextHolder.getContext().setAuthentication(auth);

@@ -26,7 +26,7 @@ public class Userservice {
         return userRepository.findAll();
     }
 
-    public Usermodel getUserById(Long id) {
+    public Usermodel getUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id " + id));
     }
@@ -35,7 +35,7 @@ public class Userservice {
         return userRepository.save(user);
     }
 
-    public Usermodel updateUser(Long id, Usermodel updatedUser) {
+    public Usermodel updateUser(String id, Usermodel updatedUser) {
         return userRepository.findById(id)
                 .map(user -> {
                     user.setName(updatedUser.getName());
@@ -45,7 +45,7 @@ public class Userservice {
                 .orElseThrow(() -> new RuntimeException("User not found with id " + id));
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(String id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id " + id);
         }
@@ -74,7 +74,7 @@ public class Userservice {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());// สร้าง token โดยใช้ email และ role เป็นข้อมูลใน
+        return jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getId());// สร้าง token โดยใช้ email และ role เป็นข้อมูลใน
                                                                       // token แล้ว controller จะเอา token นี้ไปใส่ใน
                                                                       // cookie แล้วส่งกลับไปให้ client
     }
