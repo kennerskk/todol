@@ -14,55 +14,70 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
-@Configuration //บอกให้ spring มาสแกนว่ามี bean มั้ย
-@EnableMethodSecurity //เปิดใช้งาน method level security เช่น @PreAuthorize
+@Configuration // บอกให้ spring มาสแกนว่ามี bean มั้ย
+@EnableMethodSecurity // เปิดใช้งาน method level security เช่น @PreAuthorize
 public class Securityconfig {
     @Bean
-    public PasswordEncoder passwordEncoder() {//อันนี้เอาไว้ hash password ก่อนเก็บลง database 
-        return new BCryptPasswordEncoder();//งงดิว่าทำไมไม่ใช้ BCryptPasswordEncoder เลย Bcrypt เป็นแค่ algorithm ในอนาคตถ้าอยากเปลี่ยนก็แค่เปลี่ยน return แค่นั้นไม่ต้องไปแก้ที่อื่นๆ
+    public PasswordEncoder passwordEncoder() {// อันนี้เอาไว้ hash password ก่อนเก็บลง database
+        return new BCryptPasswordEncoder();// งงดิว่าทำไมไม่ใช้ BCryptPasswordEncoder เลย Bcrypt เป็นแค่ algorithm
+                                           // ในอนาคตถ้าอยากเปลี่ยนก็แค่เปลี่ยน return แค่นั้นไม่ต้องไปแก้ที่อื่นๆ
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // กำหนด Origin ของหน้าบ้าน (เช่น React, Vue) อนุญาตให้ส่งคำขอมาข้ามโดเมนได้
         configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173", 
-            "http://127.0.0.1:5173", 
-            "http://localhost:3000", 
-            "http://127.0.0.1:3000",
-            "http://192.168.1.143:3000",
-            "http://192.168.1.143:5173"
-        )); 
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://192.168.1.143:3000",
+                "http://192.168.1.143",
+                "http://192.168.1.143:5173"));
         configuration.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
-            "http://127.0.0.1:*",
-            "http://192.168.1.*:*"
-        ));
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://192.168.1.*:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cookie", "Set-Cookie"));
         configuration.setExposedHeaders(List.of("Set-Cookie"));
-        configuration.setAllowCredentials(true); // อนุญาตให้รับส่งคุกกี้ (Cookie) ข้าม Origin ได้ (จำเป็นสำหรับการใช้ JWT ใน Cookie)
-        
+        configuration.setAllowCredentials(true); // อนุญาตให้รับส่งคุกกี้ (Cookie) ข้าม Origin ได้ (จำเป็นสำหรับการใช้
+                                                 // JWT ใน Cookie)
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
-    //อันนี้เมจิคจัดก็คือ default ของ spring security จะถูกสร้างถ้ามันไม่มี SecurityFilterChain แต่เราดันสร้างไว้มันก็เลยไม่สร้าง default แล้วใช้ของเราที่เราสร้างเองแทน
-    //ซึ่งหลักๆ spring security แบบ default จะบล็อกทุกอย่างไว้หมดเลย 
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {//อันนี้จำเป็นสูตรไปก่อนละกันงงๆอยู่
+    // อันนี้เมจิคจัดก็คือ default ของ spring security จะถูกสร้างถ้ามันไม่มี
+    // SecurityFilterChain แต่เราดันสร้างไว้มันก็เลยไม่สร้าง default
+    // แล้วใช้ของเราที่เราสร้างเองแทน
+    // ซึ่งหลักๆ spring security แบบ default จะบล็อกทุกอย่างไว้หมดเลย
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {// อันนี้จำเป็นสูตรไปก่อนละกันงงๆอยู่
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // เปิดใช้งาน CORS ตามที่เราตั้งค่าไว้
-            .csrf(csrf -> csrf.disable())//อันนี้คือ ถ้าใช้ csrf มันจะต้องมี token ทุกครั้งที่ส่ง request มา แต่เราจะใช้ jwt แทนเลย disable ไป
-            .formLogin(httpForm -> httpForm.disable())//ปิด filter แบบ default UsernamePasswordAuthenticationFilter
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/login", "/api/users/register", "/api/users/logout").permitAll() //อันนี้คือ อนุญาตให้เข้าถึง endpoint login, register, logout 
-                .anyRequest().authenticated() //อันอื่นต้อง authenticated ก่อนถึงจะเข้าถึงได้
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);// บอกว่าใช้ jwtFilter ก่อน UsernamePasswordAuthenticationFilter ซึ่งเป็น filter ที่ spring security ใช้ในการตรวจสอบ username กับ password แบบ default
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // เปิดใช้งาน CORS
+                                                                                   // ตามที่เราตั้งค่าไว้
+                .csrf(csrf -> csrf.disable())// อันนี้คือ ถ้าใช้ csrf มันจะต้องมี token ทุกครั้งที่ส่ง request มา
+                                             // แต่เราจะใช้ jwt แทนเลย disable ไป
+                .formLogin(httpForm -> httpForm.disable())// ปิด filter แบบ default UsernamePasswordAuthenticationFilter
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/login", "/api/users/register", "/api/users/logout").permitAll() // อันนี้คือ
+                                                                                                                     // อนุญาตให้เข้าถึง
+                                                                                                                     // endpoint
+                                                                                                                     // login,
+                                                                                                                     // register,
+                                                                                                                     // logout
+                        .anyRequest().authenticated() // อันอื่นต้อง authenticated ก่อนถึงจะเข้าถึงได้
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);// บอกว่าใช้ jwtFilter ก่อน
+                                                                                        // UsernamePasswordAuthenticationFilter
+                                                                                        // ซึ่งเป็น filter ที่ spring
+                                                                                        // security ใช้ในการตรวจสอบ
+                                                                                        // username กับ password แบบ
+                                                                                        // default
 
-        return http.build();//นำเอาไปใช้
+        return http.build();// นำเอาไปใช้
     }
 }
