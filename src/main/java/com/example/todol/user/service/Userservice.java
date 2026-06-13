@@ -45,6 +45,15 @@ public class Userservice {
                 .orElseThrow(() -> new RuntimeException("User not found with id " + id));
     }
 
+    public Usermodel updateProfileName(String id, String newName) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setName(newName);
+                    return userRepository.save(user);
+                })
+                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
+    }
+
     public void deleteUser(String id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id " + id);

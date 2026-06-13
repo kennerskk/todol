@@ -4,6 +4,9 @@ import com.example.todol.user.model.Usermodel;
 import com.example.todol.user.service.Userservice;
 import com.example.todol.dto.RegisterRequest;
 import com.example.todol.dto.LoginRequest;
+import com.example.todol.dto.UserProfileResponse;
+import com.example.todol.dto.UpdateProfileRequest;
+import com.example.todol.util.JwtUtil;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,9 @@ public class Usercontroller {
 
     @Autowired
     private Userservice userService;// นำ bean userService มาใช้งาน
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping // รีเควสที่เป็น "/" จะมาที่นี้
     @PreAuthorize("hasRole('ADMIN')") // ตรวจสอบว่า user มี role เป็น admin หรือไม่
@@ -57,6 +63,32 @@ public class Usercontroller {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString()) // ส่ง cookie กลับไปเขียนทับตัวเดิม
                 .body("Logout success");
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserProfileResponse> getProfile() {
+        String userId = jwtUtil.getCurrentUserIdFromToken();
+        Usermodel user = userService.getUserById(userId);
+        UserProfileResponse response = new UserProfileResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getRole()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserProfileResponse> updateProfile(@RequestBody UpdateProfileRequest req) {
+        String userId = jwtUtil.getCurrentUserIdFromToken();
+        Usermodel updatedUser = userService.updateProfileName(userId, req.getName());
+        UserProfileResponse response = new UserProfileResponse(
+            updatedUser.getId(),
+            updatedUser.getName(),
+            updatedUser.getEmail(),
+            updatedUser.getRole()
+        );
+        return ResponseEntity.ok(response);
     }
 
 }
