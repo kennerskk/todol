@@ -1,0 +1,11 @@
+- name: Debug
+  run: |
+    pwd
+    git branch
+    git log --oneline -1
+    ls -la
+    cat settings.gradle
+    head -20 build.gradle
+
+- name: Show Tasks
+  run: ./gradlew tasks
