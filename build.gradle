@@ -4,12 +4,27 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
+// Load local configuration if exists
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+// Default configurations (Java 21, prod profile)
+def activeEnv = localProperties.getProperty('env') ?: 'prod'
+def javaVersionVal = localProperties.getProperty('java.version') ?: '21'
+
+println "Gradle Build Profile: [${activeEnv}] | Java Version: [${javaVersionVal}]"
+
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(Integer.parseInt(javaVersionVal))
 	}
 }
 
@@ -36,4 +51,9 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Pass spring.profiles.active to all forked JVM processes (e.g. bootRun, test)
+tasks.withType(JavaForkOptions) {
+    systemProperty 'spring.profiles.active', activeEnv
 }
