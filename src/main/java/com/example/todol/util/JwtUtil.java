@@ -22,11 +22,21 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    public JwtUtil() {
+        // Default constructor for Spring Boot dependency injection
+    }
+
+    public JwtUtil(String secretKey) {
+        this.secretKey = secretKey;
+        this.expiration = 3600000; // Default 1 hour for testing
+    }
+
     private Key getKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateToken(String email, String role, String userId) {// สร้าง token โดยรับ email และ role เป็นข้อมูลใน token
+    public String generateToken(String email, String role, String userId) {// สร้าง token โดยรับ email และ role
+                                                                           // เป็นข้อมูลใน token
         return Jwts.builder()
                 .claim("role", "ROLE_" + role)
                 .claim("userId", userId)
@@ -56,7 +66,6 @@ public class JwtUtil {
             return null;
         }
     }
-
 
     public String getCurrentUserIdFromToken() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
