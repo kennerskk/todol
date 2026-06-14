@@ -1,11 +1,31 @@
-- name: Debug
-  run: |
-    pwd
-    git branch
-    git log --oneline -1
-    ls -la
-    cat settings.gradle
-    head -20 build.gradle
+name: Debug Gradle
 
-- name: Show Tasks
-  run: ./gradlew tasks
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Files
+        run: |
+          pwd
+          git branch
+          git log --oneline -1
+          ls -la
+          find . -maxdepth 2 -type f | sort
+
+      - name: Show Gradle Files
+        run: |
+          cat settings.gradle
+          echo "-------------------"
+          cat build.gradle
+
+      - name: Show Tasks
+        run: |
+          chmod +x gradlew
+          ./gradlew tasks
